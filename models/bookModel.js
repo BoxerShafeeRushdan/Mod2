@@ -4,6 +4,7 @@ const { Schema } = mongoose;
 
 const bookModel = new Schema({
   title: { type: String },
+  genre: {type:String},
   read: { type: Boolean },
 });
 
