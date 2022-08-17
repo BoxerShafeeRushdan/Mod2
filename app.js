@@ -7,6 +7,8 @@ const bookRouter = express.Router();
 const port = process.env.PORT || 4000;
 const Book = require("./models/bookModel.js");
 const bcrypt = require("bcrypt")
+const basicAuth = require('express-basic-auth');
+
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -63,3 +65,23 @@ app.get("/", (req, res) => {
 app.listen(port, () => {
   console.log(`Running on port + ${port}`);
 });
+
+app.use(basicAuth({
+  authorizer : dbAuthorizer,
+  authorizeAsync : true,
+  unauthorizedResponse : () => "You do not have access to this content"
+}));
+
+async function dbAuthorizer(title, genre, callback) {
+  try{
+    // get matching book from db
+    const book = await Book.findOne({where: {title: BookTitle}})
+    // if title is valid compare genres
+    let isValid = ( book != null ) ? await bcrypt.compare(genre, book.genre) : false;
+    callback(null, isValid)
+  }catch(err){
+    //if authorizer fails, show error
+    console.log("Error: ", err)
+    callback(null, false)
+  }
+}
