@@ -8,10 +8,28 @@ const port = process.env.PORT || 4000;
 const Book = require("./models/bookModel.js");
 const bcrypt = require("bcrypt")
 const basicAuth = require('express-basic-auth');
+const saltRounds = 2;
+const { use } = require("bcrypt/promises");
+const { expressjwt: jwt } = require('express-jwt');
+const jwks = require('jwks-rsa');
 
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+
+app.use(express.json());
+
+const jwtCheck = jwt({
+  secret: jwks.expressJwtSecret({
+      cache: true,
+      rateLimit: true,
+      jwksRequestsPerMinute: 5,
+      jwksUri: 'https://dev-w6lecynb.us.auth0.com/.well-known/jwks.json'
+}),
+audience: 'http://localhost:3000',
+issuer: 'https://dev-w6lecynb.us.auth0.com/',
+algorithms: ['RS256']
+});
 
 bookRouter
   .route("/books")
