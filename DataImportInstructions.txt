@@ -4,3 +4,6 @@ Make sure Mongo DB is running then
 
 run 'mongo bookAPI < booksJson.js' from the command line.
 
+run 'mongo bookAPI < usersJson.js' from the command line.
+
+

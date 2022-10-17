@@ -4,8 +4,9 @@ const bodyParser = require("body-parser");
 const app = express();
 const db = mongoose.connect("mongodb://localhost/bookAPI");
 const bookRouter = express.Router();
-const port = process.env.PORT || 4000;
+const port = process.env.PORT || 3000;
 const Book = require("./models/bookModel.js");
+const User = require("./models/userModel.js");
 const bcrypt = require("bcrypt")
 const basicAuth = require('express-basic-auth');
 const saltRounds = 2;
@@ -84,11 +85,11 @@ app.listen(port, () => {
   console.log(`Running on port + ${port}`);
 });
 
-app.use(basicAuth({
-  authorizer : dbAuthorizer,
-  authorizeAsync : true,
-  unauthorizedResponse : () => "You do not have access to this content"
-}));
+// app.use(basicAuth({
+//   authorizer : dbAuthorizer,
+//   authorizeAsync : true,
+//   unauthorizedResponse : () => "You do not have access to this content"
+// }));
 
 async function dbAuthorizer(title, genre, callback) {
   try{
@@ -103,3 +104,45 @@ async function dbAuthorizer(title, genre, callback) {
     callback(null, false)
   }
 }
+
+bookRouter
+  .route("/users")
+  .post((req, res) => {
+    const user = new User(req.body);
+    bcrypt.hash(user, async function (err, hash){
+
+    })
+    user.save();
+    return res.status(201).json(user);
+  })
+  .get((req, res) => {
+    const query = {};
+    User.find(query, (err, users) => {
+      if (err) {
+        return res.send(err);
+      }
+      return res.json(users);
+    });
+  });
+
+  bookRouter
+  .route("/users/:userId")
+  .get((req, res) => {
+    Book.findById(req.params.userId, (err, user) => {
+      if (err) {
+        return res.send(err);
+      }
+      return res.json(user);
+    });
+  })
+
+  .put((req, res) => {
+    User.findById(req.params.userId, (err, user) => {
+      if (err) {
+        return res.send(err);
+      }
+      user.title = req.user.name;
+      user.genre = req.user.password;
+      return res.json(user);
+    });
+  });
