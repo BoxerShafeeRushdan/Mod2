@@ -3,11 +3,12 @@ const mongoose = require(`mongoose`);
 const bodyParser = require("body-parser");
 const app = express();
 const db = mongoose.connect("mongodb://localhost/bookAPI");
-const bookRouter = express.Router();
+const boxRouter = express.Router();
 const port = process.env.PORT || 3000;
 const Book = require("./models/bookModel.js");
 const User = require("./models/userModel.js");
-const bcrypt = require("bcrypt")
+const File = require("./models/fileModel.js");
+const bcrypt = require("bcrypt");
 const basicAuth = require('express-basic-auth');
 const saltRounds = 2;
 const { use } = require("bcrypt/promises");
@@ -32,7 +33,7 @@ issuer: 'https://dev-w6lecynb.us.auth0.com/',
 algorithms: ['RS256']
 });
 
-bookRouter
+boxRouter
   .route("/books")
   .post((req, res) => {
     const book = new Book(req.body);
@@ -52,7 +53,7 @@ bookRouter
     });
   });
 
-bookRouter
+boxRouter
   .route("/books/:bookId")
   .get((req, res) => {
     Book.findById(req.params.bookId, (err, book) => {
@@ -75,7 +76,7 @@ bookRouter
     });
   });
 
-app.use("/api", bookRouter);
+app.use("/api", boxRouter);
 
 app.get("/", (req, res) => {
   res.send("Welcome to my Nodemon API!");
@@ -105,7 +106,7 @@ async function dbAuthorizer(title, genre, callback) {
   }
 }
 
-bookRouter
+boxRouter
   .route("/users")
   .post((req, res) => {
     const user = new User(req.body);
@@ -125,7 +126,7 @@ bookRouter
     });
   });
 
-  bookRouter
+  boxRouter
   .route("/users/:userId")
   .get((req, res) => {
     Book.findById(req.params.userId, (err, user) => {
@@ -141,8 +142,50 @@ bookRouter
       if (err) {
         return res.send(err);
       }
-      user.title = req.user.name;
-      user.genre = req.user.password;
+      user.name = req.user.name;
+      user.password = req.user.password;
       return res.json(user);
+    });
+  });
+
+  boxRouter
+  .route("/files")
+  .post((req, res) => {
+    const file = new File(req.body);
+    bcrypt.hash(file, async function (err, hash){
+
+    })
+    file.save();
+    return res.status(201).json(file);
+  })
+  .get((req, res) => {
+    const query = {};
+    File.find(query, (err, files) => {
+      if (err) {
+        return res.send(err);
+      }
+      return res.json(files);
+    });
+  });
+
+  boxRouter
+  .route("/files/:fileId")
+  .get((req, res) => {
+    File.findById(req.params.fileId, (err, file) => {
+      if (err) {
+        return res.send(err);
+      }
+      return res.json(file);
+    });
+  })
+
+  .put((req, res) => {
+    File.findById(req.params.fileId, (err, file) => {
+      if (err) {
+        return res.send(err);
+      }
+      file.file_name = req.file.file_name;
+      file.file_id = req.file.file_id;
+      return res.json(file);
     });
   });
